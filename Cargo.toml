@@ -7,7 +7,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+itertools = "~0.8"
 
 [[bin]]
 name = "aoc01"
 path = "src/aoc01.rs"
+
+[[bin]]
+name = "aoc02"
+path = "src/aoc02.rs"
