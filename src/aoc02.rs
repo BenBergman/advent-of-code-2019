@@ -33,7 +33,7 @@ fn main() {
         intcode[1] = x[0];
         intcode[2] = x[1];
         let result = get_intcode_result(intcode);
-        if result == 19690720 {
+        if result == 19_690_720 {
             println!(
                 "{}-1: {:?}",
                 std::env::current_exe()
@@ -49,7 +49,7 @@ fn main() {
 }
 
 fn get_intcode_result(intcode: Vec<usize>) -> usize {
-    let mut local_intcode = intcode.clone();
+    let mut local_intcode = intcode;
     execute_intcode(&mut local_intcode);
     local_intcode[0]
 }
