@@ -8,11 +8,3 @@ edition = "2018"
 
 [dependencies]
 itertools = "~0.8"
-
-[[bin]]
-name = "aoc01"
-path = "src/aoc01.rs"
-
-[[bin]]
-name = "aoc02"
-path = "src/aoc02.rs"
