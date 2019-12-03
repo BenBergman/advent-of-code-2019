@@ -11,11 +11,7 @@ fn main() {
         126388, 111236, 69184, 66915, 117342,
     ];
 
-    let result: u64 = masses
-        .clone()
-        .into_iter()
-        .map(|x| find_fuel_requirement(x))
-        .sum();
+    let result: u64 = masses.clone().into_iter().map(find_fuel_requirement).sum();
     println!(
         "{}-1: {:?}",
         std::env::current_exe()
@@ -27,10 +23,7 @@ fn main() {
         result
     );
 
-    let result: u64 = masses
-        .into_iter()
-        .map(|x| find_complete_fuel_requirement(x))
-        .sum();
+    let result: u64 = masses.into_iter().map(find_complete_fuel_requirement).sum();
     println!(
         "{}-2: {:?}",
         std::env::current_exe()
