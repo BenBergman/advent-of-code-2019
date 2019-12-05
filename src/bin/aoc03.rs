@@ -33,7 +33,32 @@ L990,D248,L833,U137,L556,U943,R599,U481,R963,U812,L825,U421,R998,D847,R377,D19,R
 }
 
 fn get_shortest_wire_crossing(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
-    1
+    get_intersections_from_corners(a, b)
+        .iter()
+        .map(|&p| distance_to_point(a, p) + distance_to_point(b, p))
+        .min()
+        .unwrap()
+}
+
+fn distance_to_point(a: &Vec<Motion>, p: (i64, i64)) -> i64 {
+    let mut distance = 0;
+    for line in get_corners(a).as_slice().windows(2) {
+        if is_horizontal(line) && p.1 == line[0].1 && x_is_between(p.0, line) {
+            distance += (line[0].0 - p.0).abs();
+            break;
+        } else if is_vertical(line) && p.0 == line[0].0 && y_is_between(p.1, line) {
+            distance += (line[0].1 - p.1).abs();
+            break;
+        } else if is_horizontal(line) {
+            distance += (line[1].0 - line[0].0).abs();
+        } else if is_vertical(line) {
+            distance += (line[1].1 - line[0].1).abs();
+        } else {
+            panic!("We shouldn't be able to get here")
+        }
+    }
+
+    distance
 }
 
 fn get_min_crossing_distance(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
@@ -94,14 +119,11 @@ fn get_intersections_from_corners(a: &Vec<Motion>, b: &Vec<Motion>) -> Vec<(i64,
         .as_slice()
         .windows(2)
         .flat_map(|l| {
-            //println!("{:?}", l);
-            b_lines.clone().filter_map(move |l2| {
-                //println!("    {:?}", l2);
-                get_line_intersection(l, l2)
-            })
+            b_lines
+                .clone()
+                .filter_map(move |l2| get_line_intersection(l, l2))
         })
         .collect::<Vec<(i64, i64)>>();
-    //println!("{:?}", aoeu);
 
     aoeu
 }
@@ -481,6 +503,24 @@ U7,R6,D4,L4",
             assert_eq!(str_to_motion("R987").unwrap(), Motion::Right(987));
             assert_eq!(str_to_motion("U1").unwrap(), Motion::Up(1));
             assert_eq!(str_to_motion("D2").unwrap(), Motion::Down(2));
+        }
+    }
+
+    mod distance_to_point {
+        use super::*;
+
+        #[test]
+        fn example() {
+            let (a, b) = parse_input(
+                "R8,U5,L5,D3
+U7,R6,D4,L4",
+            );
+            let p = (6, 5);
+            assert_eq!(distance_to_point(&a, p), 15);
+            assert_eq!(distance_to_point(&b, p), 15);
+            let p = (3, 3);
+            assert_eq!(distance_to_point(&a, p), 20);
+            assert_eq!(distance_to_point(&b, p), 20);
         }
     }
 }
