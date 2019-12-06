@@ -18,6 +18,18 @@ fn main() {
             .unwrap(),
         result
     );
+
+    let result = OrbitMap::new(input.as_str()).get_shortest_transfer_distance("YOU", "SAN");
+    println!(
+        "{}-2: {:?}",
+        std::env::current_exe()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        result
+    );
 }
 
 struct Body<'a> {
@@ -30,6 +42,14 @@ impl Body<'_> {
         match &self.orbit_center {
             None => 0,
             Some(center) => 1 + center.lock().unwrap().get_orbit_count(),
+        }
+    }
+
+    fn get_distance_to(&self, a: &str) -> u64 {
+        match &self.orbit_center {
+            None => 0,
+            Some(center) if center.lock().unwrap().name == a => 1,
+            Some(center) => 1 + center.lock().unwrap().get_distance_to(a),
         }
     }
 }
@@ -60,10 +80,8 @@ impl<'a> OrbitMap<'a> {
 
         for line in input.lines() {
             let bodies = line.split(")").collect::<Vec<&str>>();
-            //println!("{:?} {:?}", bodies[0], bodies[1]);
             orbit_map.add_orbit(bodies[0], bodies[1]);
         }
-        //println!("{:?}", orbit_map);
 
         orbit_map
     }
@@ -104,6 +122,53 @@ impl<'a> OrbitMap<'a> {
             .values()
             .map(|x| x.lock().unwrap().get_orbit_count())
             .sum()
+    }
+
+    fn get_common_bodies(&self, a: &str, b: &str) -> Vec<&str> {
+        let mut a_bodies = vec![];
+        let mut current_body = match self.bodies.get(a) {
+            Some(body) => Some(body.clone()),
+            None => None,
+        };
+        while let Some(body) = current_body {
+            a_bodies.push(body.lock().unwrap().name);
+            current_body = body.lock().unwrap().orbit_center.clone();
+        }
+
+        let mut b_bodies = vec![];
+        let mut current_body = match self.bodies.get(b) {
+            Some(body) => Some(body.clone()),
+            None => None,
+        };
+        while let Some(body) = current_body {
+            b_bodies.push(body.lock().unwrap().name);
+            current_body = body.lock().unwrap().orbit_center.clone();
+        }
+
+        b_bodies
+            .iter()
+            .map(|&x| x)
+            .filter(|x| a_bodies.contains(x))
+            .collect()
+    }
+
+    fn get_distance_between_bodies(&self, a: &str, b: &str) -> u64 {
+        self.bodies
+            .get(a)
+            .unwrap()
+            .lock()
+            .unwrap()
+            .get_distance_to(b)
+    }
+
+    fn get_shortest_transfer_distance(&self, a: &str, b: &str) -> u64 {
+        self.get_common_bodies(a, b)
+            .iter()
+            .map(|x| {
+                self.get_distance_between_bodies(a, x) + self.get_distance_between_bodies(b, x) - 2
+            })
+            .min()
+            .unwrap()
     }
 }
 
@@ -230,6 +295,52 @@ K)L
                 orbit_center: Some(Rc::new(Mutex::new(center))),
             };
             assert_eq!(body.get_orbit_count(), 1);
+        }
+
+        #[test]
+        fn one_orbit_distances() {
+            let a = Body {
+                name: "A",
+                orbit_center: None,
+            };
+            let b = Body {
+                name: "B",
+                orbit_center: Some(Rc::new(Mutex::new(a))),
+            };
+            let c = Body {
+                name: "C",
+                orbit_center: Some(Rc::new(Mutex::new(b))),
+            };
+            assert_eq!(c.get_distance_to("B"), 1);
+            assert_eq!(c.get_distance_to("A"), 2);
+        }
+    }
+
+    mod part2 {
+        use super::*;
+
+        #[test]
+        fn example() {
+            let input = "COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
+K)YOU
+I)SAN
+";
+            let orbit_map = OrbitMap::new(input);
+            assert_eq!(
+                orbit_map.get_common_bodies("YOU", "SAN"),
+                vec!["D", "C", "B", "COM"]
+            );
+            assert_eq!(orbit_map.get_shortest_transfer_distance("YOU", "SAN"), 4);
         }
     }
 }
