@@ -32,7 +32,7 @@ L990,D248,L833,U137,L556,U943,R599,U481,R963,U812,L825,U421,R998,D847,R377,D19,R
     );
 }
 
-fn get_shortest_wire_crossing(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
+fn get_shortest_wire_crossing(a: &[Motion], b: &[Motion]) -> i64 {
     get_intersections_from_corners(a, b)
         .iter()
         .map(|&p| distance_to_point(a, p) + distance_to_point(b, p))
@@ -40,7 +40,7 @@ fn get_shortest_wire_crossing(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
         .unwrap()
 }
 
-fn distance_to_point(a: &Vec<Motion>, p: (i64, i64)) -> i64 {
+fn distance_to_point(a: &[Motion], p: (i64, i64)) -> i64 {
     let mut distance = 0;
     for line in get_corners(a).as_slice().windows(2) {
         if is_horizontal(line) && p.1 == line[0].1 && x_is_between(p.0, line) {
@@ -61,7 +61,7 @@ fn distance_to_point(a: &Vec<Motion>, p: (i64, i64)) -> i64 {
     distance
 }
 
-fn get_min_crossing_distance(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
+fn get_min_crossing_distance(a: &[Motion], b: &[Motion]) -> i64 {
     get_intersections_from_corners(a, b)
         .iter()
         .map(|p| p.0.abs() + p.1.abs())
@@ -69,7 +69,9 @@ fn get_min_crossing_distance(a: &Vec<Motion>, b: &Vec<Motion>) -> i64 {
         .unwrap()
 }
 
-fn get_intersections(a: &Vec<Motion>, b: &Vec<Motion>) -> Vec<(i64, i64)> {
+#[allow(dead_code)]
+fn get_intersections(a: &[Motion], b: &[Motion]) -> Vec<(i64, i64)> {
+    // Old slow method
     let a_points = get_points(a);
     let b_points = get_points(b);
 
@@ -84,7 +86,7 @@ fn get_intersections(a: &Vec<Motion>, b: &Vec<Motion>) -> Vec<(i64, i64)> {
         .collect()
 }
 
-fn get_points(wire: &Vec<Motion>) -> Vec<(i64, i64)> {
+fn get_points(wire: &[Motion]) -> Vec<(i64, i64)> {
     let mut p = (0, 0);
     wire.iter()
         .flat_map(|motion| {
@@ -110,12 +112,12 @@ fn get_points(wire: &Vec<Motion>) -> Vec<(i64, i64)> {
         .collect()
 }
 
-fn get_intersections_from_corners(a: &Vec<Motion>, b: &Vec<Motion>) -> Vec<(i64, i64)> {
+fn get_intersections_from_corners(a: &[Motion], b: &[Motion]) -> Vec<(i64, i64)> {
     let a_points = get_corners(a);
     let b_points = get_corners(b);
     let b_lines = b_points.as_slice().windows(2);
 
-    let aoeu = a_points
+    a_points
         .as_slice()
         .windows(2)
         .flat_map(|l| {
@@ -123,9 +125,7 @@ fn get_intersections_from_corners(a: &Vec<Motion>, b: &Vec<Motion>) -> Vec<(i64,
                 .clone()
                 .filter_map(move |l2| get_line_intersection(l, l2))
         })
-        .collect::<Vec<(i64, i64)>>();
-
-    aoeu
+        .collect::<Vec<(i64, i64)>>()
 }
 
 fn get_line_intersection(a: &[(i64, i64)], b: &[(i64, i64)]) -> Option<(i64, i64)> {
@@ -160,7 +160,7 @@ fn y_is_between(y: i64, a: &[(i64, i64)]) -> bool {
     y > a[0].1.min(a[1].1) && y < a[1].1.max(a[0].1)
 }
 
-fn get_corners(wire: &Vec<Motion>) -> Vec<(i64, i64)> {
+fn get_corners(wire: &[Motion]) -> Vec<(i64, i64)> {
     let mut p = (0, 0);
     std::iter::once(p)
         .chain(wire.iter().map(|motion| {
@@ -170,7 +170,7 @@ fn get_corners(wire: &Vec<Motion>) -> Vec<(i64, i64)> {
                 Motion::Up(i) => (p.0, (p.1 + i)),
                 Motion::Down(i) => (p.0, (p.1 - i)),
             };
-            p = new_point.clone();
+            p = new_point;
             new_point
         }))
         .collect()
@@ -190,13 +190,13 @@ fn str_to_motion(string: &str) -> Result<Motion, Box<dyn Error>> {
     let num = chars.as_str().parse()?;
     assert!(num > 0); // TODO: return an error?
 
-    if string.starts_with("L") {
+    if string.starts_with('L') {
         Ok(Motion::Left(num))
-    } else if string.starts_with("R") {
+    } else if string.starts_with('R') {
         Ok(Motion::Right(num))
-    } else if string.starts_with("U") {
+    } else if string.starts_with('U') {
         Ok(Motion::Up(num))
-    } else if string.starts_with("D") {
+    } else if string.starts_with('D') {
         Ok(Motion::Down(num))
     } else {
         /* TODO: it would be nice if we could return an error, but I think I need to create a
@@ -212,8 +212,8 @@ fn str_to_motion(string: &str) -> Result<Motion, Box<dyn Error>> {
 
 fn parse_input(input: &str) -> (Vec<Motion>, Vec<Motion>) {
     input
-        .split("\n")
-        .map(|x| x.split(",").map(|x| str_to_motion(x).unwrap()).collect())
+        .split('\n')
+        .map(|x| x.split(',').map(|x| str_to_motion(x).unwrap()).collect())
         .collect_tuple()
         .unwrap()
 }
@@ -290,7 +290,7 @@ U7,R6,D4,L4",
 
         #[test]
         fn basic() {
-            let (a, b) = parse_input("R1,U8,R10\nU1,R4,U10");
+            let (a, _b) = parse_input("R1,U8,R10\nU1,R4,U10");
             assert_eq!(
                 get_points(&a),
                 vec![
@@ -402,7 +402,7 @@ U7,R6,D4,L4",
 
         #[test]
         fn basic() {
-            let (a, b) = parse_input("R1,U8,R10\nU1,R4,U10");
+            let (a, _b) = parse_input("R1,U8,R10\nU1,R4,U10");
             assert_eq!(get_corners(&a), vec![(0, 0), (1, 0), (1, 8), (11, 8)]);
         }
 

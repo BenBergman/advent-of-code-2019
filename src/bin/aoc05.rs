@@ -1,7 +1,3 @@
-use itertools::repeat_n;
-use itertools::Itertools;
-use std::convert::TryInto;
-
 fn main() {
     let original_intcode = vec![
         3, 225, 1, 225, 6, 6, 1100, 1, 238, 225, 104, 0, 1102, 27, 28, 225, 1, 113, 14, 224, 1001,
@@ -55,7 +51,7 @@ fn main() {
         result
     );
 
-    let mut intcode = original_intcode.clone();
+    let mut intcode = original_intcode;
     let result = execute_intcode(&mut intcode, 5);
 
     println!(
@@ -68,12 +64,6 @@ fn main() {
             .unwrap(),
         result
     );
-}
-
-fn get_intcode_result(intcode: Vec<isize>) -> isize {
-    let mut local_intcode = intcode;
-    execute_intcode(&mut local_intcode, 0);
-    local_intcode[0]
 }
 
 #[derive(Debug)]
@@ -251,6 +241,12 @@ fn execute_intcode(intcode: &mut Vec<isize>, input: isize) -> isize {
 mod tests {
     use super::*;
 
+    fn get_intcode_result(intcode: Vec<isize>) -> isize {
+        let mut local_intcode = intcode;
+        execute_intcode(&mut local_intcode, 0);
+        local_intcode[0]
+    }
+
     mod new_opcodes {
         use super::*;
 
@@ -259,8 +255,7 @@ mod tests {
             let mut program = vec![3, 0, 4, 0, 99];
             let input = 10;
             let expected = vec![10, 0, 4, 0, 99];
-            let expected_output = 10;
-            let output = execute_intcode(&mut program, input);
+            execute_intcode(&mut program, input);
             assert_eq!(program, expected);
         }
 

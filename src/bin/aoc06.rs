@@ -79,7 +79,7 @@ impl<'a> OrbitMap<'a> {
         let mut orbit_map = OrbitMap { bodies };
 
         for line in input.lines() {
-            let bodies = line.split(")").collect::<Vec<&str>>();
+            let bodies = line.split(')').collect::<Vec<&str>>();
             orbit_map.add_orbit(bodies[0], bodies[1]);
         }
 
@@ -109,9 +109,8 @@ impl<'a> OrbitMap<'a> {
             }
             Some(body) => {
                 let mut body = body.lock().unwrap();
-                match body.orbit_center {
-                    None => body.orbit_center = Some(center_body),
-                    _ => (),
+                if body.orbit_center.is_none() {
+                    body.orbit_center = Some(center_body);
                 }
             }
         };
@@ -147,7 +146,7 @@ impl<'a> OrbitMap<'a> {
 
         b_bodies
             .iter()
-            .map(|&x| x)
+            .copied()
             .filter(|x| a_bodies.contains(x))
             .collect()
     }

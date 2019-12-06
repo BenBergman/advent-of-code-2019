@@ -1,9 +1,9 @@
 use itertools::Itertools;
 
 fn main() {
-    let result = (138241..674034)
-        .filter(has_double)
-        .filter(always_increments)
+    let result = (138_241..674_034)
+        .filter(|&i| has_double(i))
+        .filter(|&i| always_increments(i))
         .count();
 
     println!(
@@ -17,9 +17,9 @@ fn main() {
         result
     );
 
-    let result = (138241..674034)
-        .filter(has_exclusive_double)
-        .filter(always_increments)
+    let result = (138_241..674_034)
+        .filter(|&i| has_exclusive_double(i))
+        .filter(|&i| always_increments(i))
         .count();
 
     println!(
@@ -34,7 +34,7 @@ fn main() {
     );
 }
 
-fn has_double(i: &u64) -> bool {
+fn has_double(i: u64) -> bool {
     (0..6)
         .map(|x| 10u64.pow(x))
         .map(|x| i / x % 10)
@@ -42,26 +42,25 @@ fn has_double(i: &u64) -> bool {
         .any(|(x, y)| x == y)
 }
 
-fn has_exclusive_double(i: &u64) -> bool {
+fn has_exclusive_double(i: u64) -> bool {
     // TODO: I feel like there is a clearer way to do this, maybe a way to map groups of
     // consecutive duplicate, or a fold or something?
     let digits = (0..6)
         .map(|x| 10u64.pow(x))
         .map(|x| i / x % 10)
         .collect_vec();
-    for i in 0..5 {
-        if digits[i] == digits[i + 1] {
-            if i <= 0 || digits[i] != digits[i - 1] {
-                if i >= 4 || digits[i] != digits[i + 2] {
-                    return true;
-                }
-            }
+    for index in 0..5 {
+        if digits[index] == digits[index + 1]
+            && (index == 0 || digits[index] != digits[index - 1])
+            && (index >= 4 || digits[index] != digits[index + 2])
+        {
+            return true;
         }
     }
-    return false;
+    false
 }
 
-fn always_increments(i: &u64) -> bool {
+fn always_increments(i: u64) -> bool {
     (0..6)
         .map(|x| 10u64.pow(x))
         .map(|x| i / x % 10)
@@ -78,13 +77,13 @@ mod tests {
 
         #[test]
         fn yes() {
-            assert!(has_double(&223450));
-            assert!(has_double(&111111));
+            assert!(has_double(223450));
+            assert!(has_double(111111));
         }
 
         #[test]
         fn no() {
-            assert!(!has_double(&123789));
+            assert!(!has_double(123789));
         }
     }
 
@@ -93,16 +92,16 @@ mod tests {
 
         #[test]
         fn yes() {
-            assert!(has_exclusive_double(&223450));
-            assert!(has_exclusive_double(&112233));
-            assert!(has_exclusive_double(&111122));
+            assert!(has_exclusive_double(223450));
+            assert!(has_exclusive_double(112233));
+            assert!(has_exclusive_double(111122));
         }
 
         #[test]
         fn no() {
-            assert!(!has_exclusive_double(&123789));
-            assert!(!has_exclusive_double(&111111));
-            assert!(!has_exclusive_double(&123444));
+            assert!(!has_exclusive_double(123789));
+            assert!(!has_exclusive_double(111111));
+            assert!(!has_exclusive_double(123444));
         }
     }
 
@@ -111,16 +110,16 @@ mod tests {
 
         #[test]
         fn yes() {
-            assert!(always_increments(&111111));
-            assert!(always_increments(&123789));
+            assert!(always_increments(111111));
+            assert!(always_increments(123789));
         }
 
         #[test]
         fn no() {
-            assert!(!always_increments(&223450));
-            assert!(!always_increments(&123787));
-            assert!(!always_increments(&120789));
-            assert!(!always_increments(&123780));
+            assert!(!always_increments(223450));
+            assert!(!always_increments(123787));
+            assert!(!always_increments(120789));
+            assert!(!always_increments(123780));
         }
     }
 }
