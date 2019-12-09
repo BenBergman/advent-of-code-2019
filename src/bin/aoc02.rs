@@ -57,19 +57,19 @@ fn get_intcode_result(intcode: Vec<usize>) -> usize {
 fn execute_intcode(intcode: &mut Vec<usize>) {
     for i in (0..intcode.len()).step_by(4) {
         match intcode[i] {
-            opcode if opcode == 1 => {
+            1 => {
                 let a = intcode[i + 1];
                 let b = intcode[i + 2];
                 let c = intcode[i + 3];
                 intcode[c] = intcode[a] + intcode[b];
             }
-            opcode if opcode == 2 => {
+            2 => {
                 let a = intcode[i + 1];
                 let b = intcode[i + 2];
                 let c = intcode[i + 3];
                 intcode[c] = intcode[a] * intcode[b];
             }
-            opcode if opcode == 99 => break,
+            99 => break,
             opcode => panic!("{:?} not allowed as opcode", opcode),
         }
     }
